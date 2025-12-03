@@ -1,0 +1,284 @@
+<!-- lala_app/templates/lala_app/detalle_receta.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="recipe-detail-container">
+    <div class="container">
+        <!-- Navegación -->
+        <div class="breadcrumb">
+            <a href="{% url 'index' %}">Inicio</a> &gt;
+            <a href="{% url 'recetas' %}">Recetas</a> &gt;
+            <span>{{ receta.nombre }}</span>
+        </div>
+
+        <div class="recipe-detail">
+            <div class="recipe-images">
+                <div class="main-image">
+                    {% if receta.foto %}
+                        <img src="{{ receta.foto.url }}" alt="{{ receta.nombre }}">
+                    {% else %}
+                        <img src="{% static 'lala_app/img/recipe-placeholder.jpg' %}" alt="Imagen no disponible">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="recipe-info">
+                <h1>{{ receta.nombre }}</h1>
+                
+                <div class="recipe-description">
+                    <h3>📖 Descripción</h3>
+                    <p>{{ receta.descripcion }}</p>
+                </div>
+
+                <div class="recipe-ingredients">
+                    <h3>🛒 Ingredientes</h3>
+                    <div class="ingredients-list">
+                        {{ receta.ingredientes|linebreaks }}
+                    </div>
+                </div>
+
+                <div class="recipe-actions">
+                    <a href="{% url 'recetas' %}" class="btn-back">← Volver a Recetas</a>
+                    {% if user.is_authenticated and user.groups.all.0.name == 'Gerente' %}
+                    <a href="{% url 'admin_crud_update' 'receta' receta.id %}" class="btn-edit">✏️ Editar Receta</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recetas relacionadas -->
+        {% if recetas_relacionadas %}
+        <div class="related-recipes">
+            <h2>🍽️ Otras Recetas que te pueden gustar</h2>
+            <div class="recipes-grid">
+                {% for receta_rel in recetas_relacionadas %}
+                <div class="recipe-card">
+                    <div class="recipe-image">
+                        <a href="{% url 'detalle_receta' receta_rel.id %}">
+                            {% if receta_rel.foto %}
+                                <img src="{{ receta_rel.foto.url }}" alt="{{ receta_rel.nombre }}">
+                            {% else %}
+                                <img src="{% static 'lala_app/img/recipe-placeholder.jpg' %}" alt="Imagen no disponible">
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="recipe-info-small">
+                        <h3><a href="{% url 'detalle_receta' receta_rel.id %}">{{ receta_rel.nombre }}</a></h3>
+                        <p class="recipe-excerpt">{{ receta_rel.descripcion|truncatewords:20 }}</p>
+                        <a href="{% url 'detalle_receta' receta_rel.id %}" class="btn-view-recipe">Ver Receta</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.recipe-detail-container {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.breadcrumb {
+    margin-bottom: 30px;
+    color: #7f8c8d;
+}
+
+.breadcrumb a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.recipe-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    margin-bottom: 60px;
+}
+
+.recipe-images .main-image {
+    width: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.recipe-images .main-image img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.recipe-info h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 2.5em;
+}
+
+.recipe-description, .recipe-ingredients {
+    margin-bottom: 30px;
+}
+
+.recipe-description h3, .recipe-ingredients h3 {
+    color: #e74c3c;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.recipe-description p {
+    line-height: 1.7;
+    color: #555;
+    font-size: 1.1em;
+}
+
+.recipe-ingredients .ingredients-list {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    border-left: 4px solid #27ae60;
+    line-height: 1.8;
+    font-size: 1.1em;
+}
+
+.recipe-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.btn-back {
+    background: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.btn-back:hover {
+    background: #2980b9;
+}
+
+.btn-edit {
+    background: #f39c12;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.btn-edit:hover {
+    background: #e67e22;
+}
+
+.related-recipes {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.related-recipes h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.recipe-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+}
+
+.recipe-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.recipe-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.recipe-card:hover .recipe-image img {
+    transform: scale(1.05);
+}
+
+.recipe-info-small {
+    padding: 20px;
+}
+
+.recipe-info-small h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.recipe-info-small h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.recipe-info-small h3 a:hover {
+    color: #e74c3c;
+}
+
+.recipe-excerpt {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.btn-view-recipe {
+    background: #27ae60;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+    display: inline-block;
+}
+
+.btn-view-recipe:hover {
+    background: #219a52;
+}
+
+@media (max-width: 768px) {
+    .recipe-detail {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .recipe-info h1 {
+        font-size: 2em;
+    }
+    
+    .recipe-actions {
+        flex-direction: column;
+    }
+    
+    .recipes-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

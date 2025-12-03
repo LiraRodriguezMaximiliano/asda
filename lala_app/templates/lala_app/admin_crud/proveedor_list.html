@@ -1,0 +1,76 @@
+<!-- lala_app/templates/lala_app/admin_crud/proveedor_list.html -->
+{% extends 'lala_app/admin_crud/base_crud.html' %}
+
+{% block crud_content %}
+<div class="table-container">
+    <!-- BUSCADOR AGREGADO -->
+    <div class="table-actions">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar proveedores..." class="table-search">
+    </div>
+    
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Logo</th>
+                <th>Empresa</th>
+                <th>Contacto</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proveedor in objetos %}
+            <tr>
+                <td>{{ proveedor.id }}</td>
+                <td>
+                    {% if proveedor.foto %}
+                    <img src="{{ proveedor.foto.url }}" alt="{{ proveedor.empresa }}" class="table-image">
+                    {% else %}
+                    <span class="no-image">🏢</span>
+                    {% endif %}
+                </td>
+                <td>{{ proveedor.empresa }}</td>
+                <td>{{ proveedor.contacto }}</td>
+                <td>{{ proveedor.email }}</td>
+                <td>{{ proveedor.telefono }}</td>
+                <td>{{ proveedor.categoria }}</td>
+                <td class="actions">
+                    <a href="{% url 'admin_crud_update' 'proveedor' proveedor.id %}" class="btn-edit">✏️ Editar</a>
+                    <a href="{% url 'admin_crud_delete' 'proveedor' proveedor.id %}" class="btn-delete">🗑️ Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="no-data">No hay proveedores registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- SCRIPT DE BÚSQUEDA AGREGADO -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.crud-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

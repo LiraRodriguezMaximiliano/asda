@@ -1,0 +1,279 @@
+<!-- lala_app/templates/lala_app/agregar_resena.html -->
+{% extends 'lala_app/base.html' %}
+
+{% block content %}
+<div class="review-container">
+    <div class="container">
+        <div class="review-form-card">
+            <h2>⭐ Agregar Reseña para {{ producto.nombre }}</h2>
+            
+            {% if reseña_existente %}
+            <div class="existing-review-notice">
+                <p>📝 Ya tienes una reseña para este producto. Puedes editarla:</p>
+            </div>
+            {% endif %}
+            
+            <form method="post" enctype="multipart/form-data" id="reviewForm">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Calificación:</label>
+                    <div class="rating-stars-large" id="ratingStars">
+                        <span class="star-select-large" data-value="1">☆</span>
+                        <span class="star-select-large" data-value="2">☆</span>
+                        <span class="star-select-large" data-value="3">☆</span>
+                        <span class="star-select-large" data-value="4">☆</span>
+                        <span class="star-select-large" data-value="5">☆</span>
+                    </div>
+                    <input type="hidden" id="id_calificacion" name="calificacion" value="{% if reseña_existente %}{{ reseña_existente.calificacion }}{% else %}5{% endif %}" required>
+                    <div id="ratingError" class="error-message" style="display: none;">Por favor selecciona una calificación</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_descripcion">Tu Reseña:</label>
+                    <textarea id="id_descripcion" name="descripcion" rows="4" class="form-control" placeholder="Comparte tu experiencia con este producto..." required>{% if reseña_existente %}{{ reseña_existente.descripcion }}{% endif %}</textarea>
+                    {% if form.descripcion.errors %}
+                    <div class="error">{{ form.descripcion.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_foto_producto">Foto del Producto (opcional):</label>
+                    <input type="file" id="id_foto_producto" name="foto_producto" accept="image/*" class="form-control">
+                    {% if form.foto_producto.errors %}
+                    <div class="error">{{ form.foto_producto.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">📝 {% if reseña_existente %}Actualizar Reseña{% else %}Publicar Reseña{% endif %}</button>
+                    <a href="{% url 'detalle_producto' producto.id %}" class="btn-cancel">❌ Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.review-container {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    min-height: 80vh;
+}
+
+.review-form-card {
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.review-form-card h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+.existing-review-notice {
+    background: #e8f5e8;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #27ae60;
+}
+
+.rating-stars-large {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    justify-content: center;
+}
+
+.star-select-large {
+    font-size: 3em;
+    cursor: pointer;
+    color: #ddd;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.star-select-large:hover {
+    transform: scale(1.2);
+}
+
+.star-select-large.selected {
+    color: #f39c12;
+    transform: scale(1.1);
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-primary {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background: #219a52;
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.btn-cancel:hover {
+    background: #7f8c8d;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.star-select-large');
+    const ratingInput = document.getElementById('id_calificacion');
+    const ratingError = document.getElementById('ratingError');
+    const reviewForm = document.getElementById('reviewForm');
+    
+    // Inicializar estrellas si ya hay una calificación
+    const currentRating = parseInt(ratingInput.value);
+    if (currentRating > 0) {
+        stars.forEach(star => {
+            const value = parseInt(star.getAttribute('data-value'));
+            if (value <= currentRating) {
+                star.textContent = '★';
+                star.classList.add('selected');
+            } else {
+                star.textContent = '☆';
+                star.classList.remove('selected');
+            }
+        });
+    }
+    
+    // Selección de estrellas
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const value = this.getAttribute('data-value');
+            ratingInput.value = value;
+            ratingError.style.display = 'none';
+            
+            // Actualizar visualización de estrellas
+            stars.forEach(s => {
+                const sValue = s.getAttribute('data-value');
+                if (sValue <= value) {
+                    s.textContent = '★';
+                    s.classList.add('selected');
+                } else {
+                    s.textContent = '☆';
+                    s.classList.remove('selected');
+                }
+            });
+        });
+        
+        // Efecto hover
+        star.addEventListener('mouseenter', function() {
+            const value = this.getAttribute('data-value');
+            stars.forEach(s => {
+                const sValue = s.getAttribute('data-value');
+                if (sValue <= value) {
+                    s.style.color = '#f39c12';
+                }
+            });
+        });
+        
+        star.addEventListener('mouseleave', function() {
+            const currentValue = ratingInput.value;
+            stars.forEach(s => {
+                const sValue = s.getAttribute('data-value');
+                if (sValue > currentValue) {
+                    s.style.color = '#ddd';
+                }
+            });
+        });
+    });
+    
+    // Validación del formulario
+    reviewForm.addEventListener('submit', function(e) {
+        if (!ratingInput.value) {
+            e.preventDefault();
+            ratingError.style.display = 'block';
+            ratingError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+        
+        const descripcion = document.getElementById('id_descripcion').value.trim();
+        if (!descripcion) {
+            e.preventDefault();
+            alert('Por favor escribe tu reseña antes de enviar.');
+            return false;
+        }
+        
+        // Mostrar mensaje de carga
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '📤 Publicando...';
+        submitBtn.disabled = true;
+        
+        setTimeout(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }, 3000);
+    });
+});
+</script>
+{% endblock %}

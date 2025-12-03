@@ -1,0 +1,370 @@
+<!-- lala_app/templates/lala_app/mis_resenas.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="my-reviews-container">
+    <div class="container">
+        <!-- BOTÓN PARA VOLVER AL PERFIL AGREGADO -->
+        <div class="back-to-profile" style="margin-bottom: 20px;">
+            <a href="{% url 'perfil_cliente' %}" class="btn-back-profile" style="display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-size: 1em;">
+                ← Volver a Mi Perfil
+            </a>
+        </div>
+        
+        <h1>⭐ Mis Reseñas</h1>
+        
+        {% if reseñas_usuario %}
+        <div class="reviews-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ reseñas_usuario.count }}</div>
+                <div class="stat-label">Total de Reseñas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">
+                    {{ promedio_calificacion|floatformat:1 }}
+                </div>
+                <div class="stat-label">Calificación Promedio</div>
+            </div>
+        </div>
+
+        <div class="my-reviews-list">
+            {% for resena in reseñas_usuario %}
+            <div class="my-review-card">
+                <div class="review-product-header">
+                    <div class="product-info">
+                        <h3>{{ resena.producto.nombre }}</h3>
+                        <span class="product-category">{{ resena.producto.categoria.nombre }}</span>
+                    </div>
+                    <a href="{% url 'detalle_producto' resena.producto.id %}" class="btn-view-product">👀 Ver Producto</a>
+                </div>
+                
+                <div class="review-content-section">
+                    <div class="review-rating">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= resena.calificacion %}
+                                <span class="star filled">★</span>
+                            {% else %}
+                                <span class="star">☆</span>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="rating-number">{{ resena.calificacion }}.0</span>
+                    </div>
+                    
+                    <div class="review-text">
+                        <p>{{ resena.descripcion }}</p>
+                    </div>
+                    
+                    {% if resena.foto_producto %}
+                    <div class="review-image">
+                        <img src="{{ resena.foto_producto.url }}" alt="Foto del producto">
+                    </div>
+                    {% endif %}
+                    
+                    <div class="review-meta">
+                        <span class="review-date">📅 {{ resena.fecha|date:"d M Y" }}</span>
+                        <span class="review-status">✅ Publicada</span>
+                    </div>
+                </div>
+                
+                <div class="review-actions">
+                    <a href="{% url 'agregar_resena' resena.producto.id %}" class="btn-edit-review">✏️ Editar Reseña</a>
+                    <a href="{% url 'eliminar_resena' resena.id %}" class="btn-delete-review">🗑️ Eliminar</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-reviews">
+            <div class="no-reviews-content">
+                <h2>📝 Aún no has escrito ninguna reseña</h2>
+                <p>¡Comparte tu experiencia con nuestros productos y ayuda a otros clientes!</p>
+                <div class="no-reviews-actions">
+                    <a href="{% url 'productos_lacteos' %}" class="btn-primary">🥛 Escribir mi primera reseña</a>
+                    <a href="{% url 'resenas' %}" class="btn-secondary">⭐ Ver reseñas de otros</a>
+                    <!-- BOTÓN PARA VOLVER AL PERFIL TAMBIÉN CUANDO NO HAY RESEÑAS -->
+                    <a href="{% url 'perfil_cliente' %}" class="btn-secondary" style="background: #3498db;">👤 Volver a Mi Perfil</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.my-reviews-container {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Estilo para el botón de volver al perfil */
+.back-to-profile {
+    margin-bottom: 30px;
+}
+
+.btn-back-profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-back-profile:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    text-decoration: none;
+}
+
+.reviews-stats {
+    display: flex;
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.stat-card {
+    flex: 1;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.stat-number {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.my-reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.my-review-card {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.review-product-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.product-info h3 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.product-category {
+    color: #7f8c8d;
+    font-size: 0.9em;
+    background: #ecf0f1;
+    padding: 3px 10px;
+    border-radius: 15px;
+}
+
+.btn-view-product {
+    background: #3498db;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.btn-view-product:hover {
+    background: #2980b9;
+    text-decoration: none;
+}
+
+.review-content-section {
+    margin-bottom: 20px;
+}
+
+.review-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.review-rating .star {
+    color: #ddd;
+    font-size: 1.5em;
+}
+
+.review-rating .star.filled {
+    color: #f39c12;
+}
+
+.rating-number {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.2em;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.review-image img {
+    max-width: 200px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.review-meta {
+    display: flex;
+    gap: 20px;
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.review-actions {
+    display: flex;
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.btn-edit-review {
+    background: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-edit-review:hover {
+    background: #2980b9;
+    text-decoration: none;
+}
+
+.btn-delete-review {
+    background: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete-review:hover {
+    background: #c0392b;
+    text-decoration: none;
+}
+
+.no-reviews {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-top: 30px;
+}
+
+.no-reviews h2 {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+}
+
+.no-reviews p {
+    color: #7f8c8d;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+.no-reviews-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #2c3e50;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #1a252f;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .reviews-stats {
+        flex-direction: column;
+    }
+    
+    .review-product-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .review-actions {
+        flex-direction: column;
+    }
+    
+    .no-reviews-actions {
+        flex-direction: column;
+    }
+    
+    .back-to-profile {
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

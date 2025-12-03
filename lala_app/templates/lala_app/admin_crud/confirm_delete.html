@@ -1,0 +1,26 @@
+<!-- lala_app/templates/lala_app/admin_crud/confirm_delete.html -->
+{% extends 'lala_app/admin_crud/base_crud.html' %}
+
+{% block crud_content %}
+<div class="delete-confirmation">
+    <div class="confirmation-card">
+        <h2>⚠️ Confirmar Eliminación</h2>
+        <p>¿Estás seguro de que quieres eliminar este {{ model_display_name|lower }}?</p>
+        
+        <div class="object-info">
+            <h3>{{ objeto }}</h3>
+            {% if objeto.descripcion %}
+            <p>{{ objeto.descripcion|truncatewords:20 }}</p>
+            {% endif %}
+        </div>
+        
+        <form method="post" class="confirmation-form">
+            {% csrf_token %}
+            <div class="confirmation-actions">
+                <button type="submit" class="btn-confirm-delete">🗑️ Sí, eliminar</button>
+                <a href="{% url 'admin_crud_list' model_name %}" class="btn-cancel">↩️ Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

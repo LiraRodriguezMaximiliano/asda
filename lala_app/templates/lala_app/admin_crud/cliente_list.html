@@ -1,0 +1,63 @@
+<!-- lala_app/templates/lala_app/admin_crud/cliente_list.html -->
+{% extends 'lala_app/admin_crud/base_crud.html' %}
+
+{% block crud_content %}
+<div class="table-container">
+    <!-- BUSCADOR AGREGADO -->
+    <div class="table-actions">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar clientes..." class="table-search">
+    </div>
+    
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Fecha Registro</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in objetos %}
+            <tr>
+                <td>{{ cliente.id }}</td>
+                <td>{{ cliente.usuario.username }}</td>
+                <td>{{ cliente.usuario.get_full_name }}</td>
+                <td>{{ cliente.correo }}</td>
+                <td>{{ cliente.telefono|default:"No especificado" }}</td>
+                <td>{{ cliente.fecha_registro }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="no-data">No hay clientes registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- SCRIPT DE BÚSQUEDA AGREGADO -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.crud-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

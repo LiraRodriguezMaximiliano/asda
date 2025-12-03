@@ -1,0 +1,436 @@
+<!-- lala_app/templates/lala_app/base.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LALA - Productos Lácteos</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'lala_app/css/styles.css' %}">
+    <style>
+        /* Estilos mejorados para la navbar simplificada */
+        .nav-logo img.logo-img {
+            height: 50px;
+            width: auto;
+        }
+        
+        .logo-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-left: 10px;
+        }
+        
+        .nav-logo a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-menu a {
+            text-decoration: none;
+            color: #333;
+            padding: 12px 15px;
+            display: inline-block;
+            transition: all 0.3s ease;
+            border-radius: 5px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .nav-menu a:hover {
+            background-color: #e74c3c;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .nav-menu a.active {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        /* Estilos para mensajes */
+        .messages-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .close-message {
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        
+        .close-message:hover {
+            opacity: 1;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Badge del carrito */
+        .cart-badge {
+            background: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.7em;
+            margin-left: 5px;
+        }
+        
+        /* Botón de registro especial */
+        .register-btn {
+            background: #e74c3c;
+            color: white !important;
+            border-radius: 5px;
+            padding: 8px 15px;
+            transition: background 0.3s;
+        }
+        
+        .register-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        /* Estilos responsive */
+        @media (max-width: 1024px) {
+            .nav-menu {
+                gap: 3px;
+            }
+            
+            .nav-menu a {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .nav-menu {
+                margin-top: 15px;
+                justify-content: center;
+                gap: 5px;
+            }
+            
+            .nav-menu a {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+            
+            .messages-container {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                top: 120px;
+            }
+            
+            .logo-text {
+                font-size: 1.5em;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .nav-menu {
+                flex-wrap: wrap;
+                gap: 3px;
+            }
+            
+            .nav-menu a {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            .nav-logo img.logo-img {
+                height: 35px;
+            }
+            
+            .logo-text {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="{% url 'index' %}">
+                    <img src="{% static 'lala_app/img/logo-lala.png' %}" alt="LALA Logo" class="logo-img" onerror="this.style.display='none'">
+                    <span class="logo-text">LALA</span>
+                </a>
+            </div>
+            <div class="nav-menu">
+                {% if user.is_authenticated %}
+                    {% if user.groups.all.0.name == 'Gerente' %}
+                        <!-- Menú SIMPLIFICADO para Gerente - SIN PROMOCIONES -->
+                        <a href="{% url 'index' %}">🏠 Inicio</a>
+                        <a href="{% url 'productos_lacteos' %}">🥛 Lácteos</a>
+                        <a href="{% url 'productos_no_lacteos' %}">🌱 No Lácteos</a>
+                        <a href="{% url 'recetas' %}">📝 Recetas</a>
+                        <a href="{% url 'resenas' %}">⭐ Reseñas</a>
+                        <a href="{% url 'admin_panel' %}">⚙️ Panel Admin</a>
+                        <a href="{% url 'logout' %}">🚪 Salir</a>
+                    {% else %}
+                        <!-- Menú SIMPLIFICADO para Cliente - SIN PROMOCIONES -->
+                        <a href="{% url 'index' %}">🏠 Inicio</a>
+                        <a href="{% url 'productos_lacteos' %}">🥛 Lácteos</a>
+                        <a href="{% url 'productos_no_lacteos' %}">🌱 No Lácteos</a>
+                        <a href="{% url 'recetas' %}">📝 Recetas</a>
+                        <a href="{% url 'resenas' %}">⭐ Reseñas</a>
+                        <a href="{% url 'carrito' %}">🛒 Carrito 
+                            {% if request.session.carrito %}
+                            <span class="cart-badge">{{ request.session.carrito|length }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'perfil_cliente' %}">👤 Perfil</a>
+                        <a href="{% url 'logout' %}">🚪 Salir</a>
+                    {% endif %}
+                {% else %}
+                    <!-- Menú SIMPLIFICADO para visitantes - SIN PROMOCIONES -->
+                    <a href="{% url 'index' %}">🏠 Inicio</a>
+                    <a href="{% url 'productos_lacteos' %}">🥛 Lácteos</a>
+                    <a href="{% url 'productos_no_lacteos' %}">🌱 No Lácteos</a>
+                    <a href="{% url 'recetas' %}">📝 Recetas</a>
+                    <a href="{% url 'resenas' %}">⭐ Reseñas</a>
+                    <a href="{% url 'login' %}">🔑 Entrar</a>
+                    <a href="{% url 'register' %}" class="register-btn">📝 Registro</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="close-message">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="container">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="{% static 'lala_app/img/logo-lala.png' %}" alt="LALA Logo" style="height: 40px;">
+                        <span style="font-size: 1.5em; font-weight: bold; color: white; margin-left: 10px;">LALA</span>
+                    </div>
+                    <p>Los mejores productos lácteos y no lácteos</p>
+                    <p><strong>LA NETA, APROBADA POR CHAYANNE</strong></p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <a href="{% url 'productos_lacteos' %}">🥛 Productos Lácteos</a>
+                    <a href="{% url 'productos_no_lacteos' %}">🌱 Productos No Lácteos</a>
+                    <a href="{% url 'recetas' %}">📝 Recetas LALA</a>
+                    <a href="{% url 'resenas' %}">⭐ Reseñas</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p>📞 800-LALA-MEX</p>
+                    <p>✉️ info@lala.com.mx</p>
+                    <p>📍 México</p>
+                </div>
+                
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 LALA. Lira Rodriguez Maximiliano 5-I.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'lala_app/js/scripts.js' %}"></script>
+    <script>
+        // Funcionalidades específicas del base.html
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cerrar mensajes
+            const closeButtons = document.querySelectorAll('.close-message');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.alert').style.animation = 'fadeOut 0.5s ease-out';
+                    setTimeout(() => {
+                        this.closest('.alert').style.display = 'none';
+                    }, 500);
+                });
+            });
+
+            // Auto-ocultar mensajes después de 5 segundos
+            setTimeout(function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    if (alert.style.display !== 'none') {
+                        alert.style.animation = 'fadeOut 0.5s ease-out';
+                        setTimeout(() => {
+                            alert.style.display = 'none';
+                        }, 500);
+                    }
+                });
+            }, 5000);
+
+            // Marcar enlace activo basado en la URL actual
+            const currentUrl = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-menu a[href]');
+            
+            navLinks.forEach(link => {
+                const linkUrl = link.getAttribute('href');
+                if (currentUrl === linkUrl || (linkUrl !== '/' && currentUrl.startsWith(linkUrl))) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Animación de fadeOut para mensajes
+        if (!document.querySelector('#baseStyles')) {
+            const baseStyles = document.createElement('style');
+            baseStyles.id = 'baseStyles';
+            baseStyles.textContent = `
+                @keyframes fadeOut {
+                    from { opacity: 1; transform: translateY(0); }
+                    to { opacity: 0; transform: translateY(-20px); }
+                }
+                
+                /* Estilos del footer */
+                footer {
+                    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+                    color: white;
+                    padding: 40px 0 20px;
+                    margin-top: 50px;
+                }
+                
+                .footer-content .container {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 30px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 0 20px;
+                }
+                
+                .footer-section h4 {
+                    color: #ecf0f1;
+                    margin-bottom: 15px;
+                }
+                
+                .footer-section a {
+                    color: #bdc3c7;
+                    text-decoration: none;
+                    display: block;
+                    margin-bottom: 8px;
+                    transition: color 0.3s;
+                }
+                
+                .footer-section a:hover {
+                    color: #e74c3c;
+                }
+                
+                .social-links span {
+                    display: block;
+                    margin-bottom: 5px;
+                    color: #bdc3c7;
+                }
+                
+                .footer-bottom {
+                    text-align: center;
+                    margin-top: 30px;
+                    padding-top: 20px;
+                    border-top: 1px solid #34495e;
+                    color: #bdc3c7;
+                }
+                
+                .footer-logo {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 15px;
+                }
+                
+                main {
+                    min-height: calc(100vh - 200px);
+                }
+            `;
+            document.head.appendChild(baseStyles);
+        }
+    </script>
+</body>
+</html>

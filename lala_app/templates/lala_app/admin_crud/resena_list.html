@@ -1,0 +1,78 @@
+<!-- lala_app/templates/lala_app/admin_crud/resena_list.html -->
+{% extends 'lala_app/admin_crud/base_crud.html' %}
+
+{% block crud_content %}
+<div class="table-container">
+    <!-- BUSCADOR AGREGADO -->
+    <div class="table-actions">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar reseñas..." class="table-search">
+    </div>
+    
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Producto</th>
+                <th>Calificación</th>
+                <th>Reseña</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for resena in objetos %}
+            <tr>
+                <td>{{ resena.id }}</td>
+                <td>{{ resena.cliente.usuario.get_full_name }}</td>
+                <td>{{ resena.producto.nombre }}</td>
+                <td>
+                    <span class="rating-stars">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= resena.calificacion %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                </td>
+                <td>{{ resena.descripcion|truncatewords:15 }}</td>
+                <td>{{ resena.fecha }}</td>
+                <td class="actions">
+                    <a href="{% url 'admin_crud_update' 'resena' resena.id %}" class="btn-edit">✏️ Editar</a>
+                    <a href="{% url 'admin_crud_delete' 'resena' resena.id %}" class="btn-delete">🗑️ Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="no-data">No hay reseñas registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- SCRIPT DE BÚSQUEDA AGREGADO -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.crud-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

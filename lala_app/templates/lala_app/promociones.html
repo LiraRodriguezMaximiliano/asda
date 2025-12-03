@@ -1,0 +1,46 @@
+<!-- lala_app/templates/lala_app/promociones.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="promotions-container">
+    <div class="container">
+        <h1>Promociones Especiales</h1>
+        <div class="promotions-grid">
+            <div class="promotion-card featured">
+                <div class="promotion-badge">¡OFERTA ESPECIAL!</div>
+                <div class="promotion-content">
+                    <h3>2x1 en Yogurt LALA</h3>
+                    <p class="promotion-description">Lleva 2 yogurts LALA por el precio de 1. Válido hasta agotar existencias.</p>
+                    <p class="promotion-period">Válido: 01/12/2023 - 31/12/2023</p>
+                    <div class="promotion-actions">
+                        <a href="{% url 'productos_lacteos' %}" class="btn-promotion">Aprovechar Oferta</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="promotion-card">
+                <div class="promotion-content">
+                    <h3>20% de descuento en Quesos</h3>
+                    <p class="promotion-description">Todos nuestros quesos con 20% de descuento en compras mayores a $200.</p>
+                    <p class="promotion-period">Válido todo el mes</p>
+                    <div class="promotion-actions">
+                        <a href="{% url 'productos_lacteos' %}" class="btn-promotion">Ver Productos</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="promotion-card">
+                <div class="promotion-content">
+                    <h3>Combo Familiar</h3>
+                    <p class="promotion-description">Paquete familiar con leche, yogurt y queso con 15% de descuento.</p>
+                    <p class="promotion-period">Solo fines de semana</p>
+                    <div class="promotion-actions">
+                        <a href="{% url 'productos_lacteos' %}" class="btn-promotion">Ver Combo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

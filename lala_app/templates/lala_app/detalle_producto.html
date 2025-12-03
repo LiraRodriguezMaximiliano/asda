@@ -1,0 +1,383 @@
+<!-- lala_app/templates/lala_app/detalle_producto.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="product-detail-container">
+    <div class="container">
+        <!-- Navegación -->
+        <div class="breadcrumb">
+            <a href="{% url 'index' %}">Inicio</a> &gt;
+            <a href="{% url 'productos_lacteos' %}">Productos</a> &gt;
+            <span>{{ producto.nombre }}</span>
+        </div>
+
+        <div class="product-detail">
+            <div class="product-images">
+                <div class="main-image">
+                    {% if producto.foto %}
+                        <img src="{{ producto.foto.url }}" alt="{{ producto.nombre }}">
+                    {% else %}
+                        <img src="{% static 'lala_app/img/placeholder.jpg' %}" alt="Imagen no disponible">
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="product-info">
+                <h1>{{ producto.nombre }}</h1>
+                <p class="product-category">{{ producto.categoria.nombre }}</p>
+                <p class="product-price">${{ producto.precio }}</p>
+                
+                <div class="product-description-full">
+                    <h3>Descripción</h3>
+                    <p>{{ producto.descripcion }}</p>
+                </div>
+
+                {% if user.is_authenticated and not user.groups.all.0.name == 'Gerente' %}
+                <div class="purchase-section">
+                    <form method="post" action="{% url 'agregar_al_carrito' producto.id %}">
+                        {% csrf_token %}
+                        <div class="quantity-selector">
+                            <label for="cantidad">Cantidad:</label>
+                            <div class="quantity-controls">
+                                <button type="button" class="quantity-btn minus" onclick="decrementQuantity()">-</button>
+                                <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="10" readonly>
+                                <button type="button" class="quantity-btn plus" onclick="incrementQuantity()">+</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-add-cart-large">🛒 Agregar al Carrito</button>
+                    </form>
+                </div>
+                <!-- En la sección de login-required -->
+{% elif not user.is_authenticated %}
+<div class="login-required">
+    <p>💡 Para comprar este producto necesitas tener una cuenta</p>
+    <div class="auth-buttons">
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn-login">🔑 Iniciar Sesión</a>
+        <span class="auth-separator">o</span>
+        <a href="{% url 'register' %}" class="btn-register">📝 Registrarse</a>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-login {
+    background: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    flex: 1;
+    text-align: center;
+    min-width: 150px;
+}
+
+.btn-register {
+    background: #27ae60;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    flex: 1;
+    text-align: center;
+    min-width: 150px;
+}
+
+.auth-separator {
+    color: #7f8c8d;
+    font-weight: bold;
+}
+
+@media (max-width: 480px) {
+    .auth-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .auth-separator {
+        display: none;
+    }
+    
+    .btn-login, .btn-register {
+        width: 100%;
+    }
+}
+</style>
+            </div>
+        </div>
+
+       <div class="review-section">
+    <h3>💬 Reseñas de Clientes</h3>
+    
+    {% if user.is_authenticated and not user.groups.all.0.name == 'Gerente' %}
+    <a href="{% url 'agregar_resena' producto.id %}" class="btn-add-review">⭐ Agregar Reseña</a>
+    {% endif %}
+    
+    {% if reseñas %}
+    <div class="reviews-grid">
+        {% for resena in reseñas %}
+        <div class="review-card">
+            <div class="review-header">
+                <div class="reviewer-info">
+                    <strong>{{ resena.cliente.usuario.get_full_name }}</strong>
+                    <span class="review-date">{{ resena.fecha }}</span>
+                </div>
+                <div class="review-rating">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= resena.calificacion %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star">☆</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="review-text">{{ resena.descripcion }}</p>
+            {% if resena.foto_producto %}
+            <div class="review-image">
+                <img src="{{ resena.foto_producto.url }}" alt="Foto del producto">
+            </div>
+            {% endif %}
+            
+            {% if user.is_authenticated and user == resena.cliente.usuario %}
+            <div class="review-actions">
+                <a href="{% url 'agregar_resena' producto.id %}" class="btn-edit-review">✏️ Editar</a>
+                <form method="post" action="{% url 'eliminar_resena' resena.id %}" class="delete-review-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete-review" onclick="return confirm('¿Estás seguro de que quieres eliminar esta reseña?')">🗑️ Eliminar</button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="no-reviews">Aún no hay reseñas para este producto. ¡Sé el primero en opinar!</p>
+    {% endif %}
+</div>
+
+<style>
+.review-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.btn-edit-review {
+    background: #3498db;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.btn-delete-review {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.delete-review-form {
+    display: inline;
+}
+</style>
+
+        <!-- Productos relacionados -->
+        {% if productos_relacionados %}
+        <div class="related-products">
+            <h2>Productos Relacionados</h2>
+            <div class="products-grid">
+                {% for producto_rel in productos_relacionados %}
+                <div class="product-card">
+                    <div class="product-image">
+                        <a href="{% url 'detalle_producto' producto_rel.id %}">
+                            {% if producto_rel.foto %}
+                                <img src="{{ producto_rel.foto.url }}" alt="{{ producto_rel.nombre }}">
+                            {% else %}
+                                <img src="{% static 'lala_app/img/placeholder.jpg' %}" alt="Imagen no disponible">
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="product-info">
+                        <h3><a href="{% url 'detalle_producto' producto_rel.id %}">{{ producto_rel.nombre }}</a></h3>
+                        <p class="product-price">${{ producto_rel.precio }}</p>
+                        <a href="{% url 'detalle_producto' producto_rel.id %}" class="btn-view-details">Ver Detalles</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Funcionalidad para los botones de cantidad
+function incrementQuantity() {
+    const cantidadInput = document.getElementById('cantidad');
+    let currentValue = parseInt(cantidadInput.value);
+    if (currentValue < 10) {
+        cantidadInput.value = currentValue + 1;
+    }
+}
+
+function decrementQuantity() {
+    const cantidadInput = document.getElementById('cantidad');
+    let currentValue = parseInt(cantidadInput.value);
+    if (currentValue > 1) {
+        cantidadInput.value = currentValue - 1;
+    }
+}
+
+// También agregar event listeners para teclado
+document.addEventListener('DOMContentLoaded', function() {
+    const cantidadInput = document.getElementById('cantidad');
+    if (cantidadInput) {
+        cantidadInput.addEventListener('input', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            } else if (value > 10) {
+                this.value = 10;
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.quantity-controls .quantity-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-controls .quantity-btn:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.quantity-controls input {
+    width: 60px;
+    text-align: center;
+    padding: 10px;
+    border: 2px solid #ecf0f1;
+    border-radius: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+    background: #f8f9fa;
+}
+
+.btn-add-cart-large {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    width: 100%;
+    transition: background 0.3s;
+    margin-top: 15px;
+}
+
+.btn-add-cart-large:hover {
+    background: #219a52;
+}
+
+.review-section {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.btn-add-review {
+    background: #f39c12;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.btn-add-review:hover {
+    background: #e67e22;
+}
+
+.reviews-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.review-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-rating {
+    color: #f39c12;
+}
+
+.star.filled {
+    color: #f39c12;
+}
+
+.review-image img {
+    max-width: 200px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+.review-date {
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.no-reviews {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 20px;
+}
+</style>
+{% endblock %}

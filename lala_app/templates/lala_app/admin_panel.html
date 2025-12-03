@@ -1,0 +1,64 @@
+<!-- lala_app/templates/lala_app/admin_panel.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="admin-panel">
+    <div class="container">
+        <div class="admin-header">
+            <h1>🏢 Panel de Administración LALA</h1>
+            <p>Gestiona toda la información de tu empresa</p>
+        </div>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-info">
+                    <h3>{{ models_info.producto.count }}</h3>
+                    <p>Productos</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-info">
+                    <h3>{{ models_info.cliente.count }}</h3>
+                    <p>Clientes</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👨‍💼</div>
+                <div class="stat-info">
+                    <h3>{{ models_info.empleado.count }}</h3>
+                    <p>Empleados</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-info">
+                    <h3>{{ models_info.resena.count }}</h3>
+                    <p>Reseñas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            {% for key, info in models_info.items %}
+            <div class="admin-card">
+                <div class="admin-card-icon">{{ info.icon }}</div>
+                <div class="admin-card-content">
+                    <h3>{{ info.nombre }}</h3>
+                    <p>{{ info.description }}</p>
+                    <div class="admin-card-actions">
+                        <a href="{% url 'admin_crud_list' key %}" class="btn-admin btn-view">👁️ Ver Todos</a>
+                        {% if key != 'cliente' and key != 'venta' and key != 'resena' %}
+                        <a href="{% url 'admin_crud_create' key %}" class="btn-admin btn-add">➕ Agregar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

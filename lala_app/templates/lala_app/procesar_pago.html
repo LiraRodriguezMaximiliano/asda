@@ -1,0 +1,240 @@
+<!-- lala_app/templates/lala_app/procesar_pago.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="container">
+        <h1>💳 Procesar Pago</h1>
+        
+        <div class="payment-content">
+            <div class="order-summary">
+                <h3>Resumen de tu Pedido</h3>
+                <div class="order-items">
+                    {% for producto_id, item in items_carrito.items %}
+                    <div class="order-item">
+                        <span class="item-name">{{ item.nombre }}</span>
+                        <span class="item-quantity">x{{ item.cantidad }}</span>
+                        <span class="item-price">${{ item.precio }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="order-total">
+                    <strong>Total: ${{ total_carrito|floatformat:2 }}</strong>
+                </div>
+            </div>
+            
+            <div class="payment-form-container">
+                <h3>Información de Pago</h3>
+                <form method="post" class="payment-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="id_nombre_titular">{{ form.nombre_titular.label }}</label>
+                        {{ form.nombre_titular }}
+                        {% if form.nombre_titular.errors %}
+                        <div class="error">{{ form.nombre_titular.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_numero_tarjeta">{{ form.numero_tarjeta.label }}</label>
+                        {{ form.numero_tarjeta }}
+                        {% if form.numero_tarjeta.errors %}
+                        <div class="error">{{ form.numero_tarjeta.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_tipo_tarjeta">{{ form.tipo_tarjeta.label }}</label>
+                            {{ form.tipo_tarjeta }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_mes_expiracion">{{ form.mes_expiracion.label }}</label>
+                            {{ form.mes_expiracion }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_año_expiracion">{{ form.año_expiracion.label }}</label>
+                            {{ form.año_expiracion }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_cvv">{{ form.cvv.label }}</label>
+                            {{ form.cvv }}
+                            {% if form.cvv.errors %}
+                            <div class="error">{{ form.cvv.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                    <div class="error non-field-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="payment-actions">
+                        <button type="submit" class="btn-payment">✅ Procesar Pago</button>
+                        <a href="{% url 'carrito' %}" class="btn-cancel">← Volver al Carrito</a>
+                    </div>
+                    
+                    <div class="payment-security">
+                        <p>🔒 Pago seguro - No almacenamos información de tu tarjeta</p>
+                        <div class="accepted-cards">
+                            <span>💳 VISA</span>
+                            <span>💳 MasterCard</span>
+                            <span>💳 American Express</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 30px;
+}
+
+.order-summary {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    height: fit-content;
+}
+
+.order-items {
+    margin: 20px 0;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.order-total {
+    text-align: right;
+    font-size: 1.2em;
+    padding-top: 15px;
+    border-top: 2px solid #dee2e6;
+}
+
+.payment-form-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.payment-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.btn-payment {
+    background: #27ae60;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1em;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.btn-payment:hover {
+    background: #219a52;
+}
+
+.payment-security {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
+    color: #7f8c8d;
+}
+
+.accepted-cards {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.non-field-errors {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+@media (max-width: 768px) {
+    .payment-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .payment-form .form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Formatear número de tarjeta
+    const cardNumberInput = document.getElementById('id_numero_tarjeta');
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', function() {
+            let value = this.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = value.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+            
+            for (let i = 0; i < match.length; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+            
+            if (parts.length) {
+                this.value = parts.join(' ');
+            } else {
+                this.value = value;
+            }
+        });
+    }
+    
+    // Detectar tipo de tarjeta
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('change', function() {
+            const cardNumber = this.value.replace(/\s/g, '');
+            const cardTypeSelect = document.getElementById('id_tipo_tarjeta');
+            
+            if (/^4/.test(cardNumber)) {
+                cardTypeSelect.value = 'VISA';
+            } else if (/^5[1-5]/.test(cardNumber)) {
+                cardTypeSelect.value = 'MC';
+            } else if (/^3[47]/.test(cardNumber)) {
+                cardTypeSelect.value = 'AMEX';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

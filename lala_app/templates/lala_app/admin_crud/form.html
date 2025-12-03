@@ -1,0 +1,34 @@
+<!-- lala_app/templates/lala_app/admin_crud/form.html -->
+{% extends 'lala_app/admin_crud/base_crud.html' %}
+
+{% block crud_content %}
+<div class="form-container">
+    <h2>{{ action }} {{ model_display_name }}</h2>
+    
+    <form method="post" enctype="multipart/form-data" class="crud-form">
+        {% csrf_token %}
+        
+        <div class="form-grid">
+            {% for field in form %}
+            <div class="form-group {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="error-message">
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+                {% if field.help_text %}
+                <div class="help-text">{{ field.help_text }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-save">💾 {{ action }} {{ model_display_name }}</button>
+            <a href="{% url 'admin_crud_list' model_name %}" class="btn-cancel">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

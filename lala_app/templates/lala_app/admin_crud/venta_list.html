@@ -1,0 +1,154 @@
+<!-- lala_app/templates/lala_app/admin_crud/venta_list.html -->
+{% extends 'lala_app/admin_crud/base_crud.html' %}
+
+{% block crud_content %}
+<div class="table-container">
+    <!-- BUSCADOR AGREGADO -->
+    <div class="table-actions">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar ventas..." class="table-search">
+    </div>
+    
+    <table class="crud-table">
+        <thead>
+            <tr>
+                <th>ID Venta</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Detalles</th>
+                <th>Acciones</th>  <!-- COLUMNA NUEVA -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in objetos %}
+            <tr>
+                <td>V-{{ venta.id }}</td>
+                <td>{{ venta.cliente.usuario.get_full_name }}</td>
+                <td>{{ venta.fecha }}</td>
+                <td>${{ venta.total }}</td>
+                <td>
+                    <span class="badge {% if venta.completada %}completed{% else %}pending{% endif %}">
+                        {% if venta.completada %}✅ Completado{% else %}⏳ Pendiente{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'detalle_venta' venta.id %}" class="btn-view">📋 Ver Detalles</a>
+                </td>
+                <td class="actions">  <!-- CELDA NUEVA -->
+                    <a href="{% url 'admin_crud_update' 'venta' venta.id %}" class="btn-edit">✏️ Editar Estado</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="no-data">No hay ventas registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- SCRIPT DE BÚSQUEDA AGREGADO -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Búsqueda en tiempo real
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.crud-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+
+<style>
+/* Estilos para los badges de estado */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.badge.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.badge.pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+/* Estilos para los botones de acción */
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-edit {
+    background: #3498db;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.btn-edit:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.btn-view {
+    background: #2c3e50;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+    background: #1a252f;
+    text-decoration: none;
+}
+
+/* Asegurar que la tabla sea responsiva */
+@media (max-width: 1200px) {
+    .crud-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .actions {
+        flex-direction: column;
+    }
+    
+    .btn-edit, .btn-view {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!-- lala_app/templates/lala_app/index.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hero-section" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('{% static 'lala_app/img/chayanne-bg.jpeg' %}'); background-size: cover; background-position: center;">
+    <div class="hero-content">
+        <h1>LA NETA, APROBADA POR CHAYANNE</h1>
+        <p>Los mejores productos lácteos y no lácteos</p>
+        <a href="{% url 'productos_lacteos' %}" class="cta-button">Ver Productos</a>
+    </div>
+</div>
+
+
+<div class="features-section">
+    <div class="container">
+        <h2>Nuestras Categorías</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>Productos Lácteos</h3>
+                <p>Leche, yogurt, queso y más</p>
+                <a href="{% url 'productos_lacteos' %}">Ver más</a>
+            </div>
+            <div class="feature-card">
+                <h3>Productos No Lácteos</h3>
+                <p>Alternativas saludables</p>
+                <a href="{% url 'productos_no_lacteos' %}">Ver más</a>
+            </div>
+            <div class="feature-card">
+                <h3>Recetas LALA</h3>
+                <p>Deliciosas recetas con nuestros productos</p>
+                <a href="{% url 'recetas' %}">Ver más</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

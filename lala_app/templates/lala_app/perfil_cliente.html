@@ -1,0 +1,173 @@
+<!-- lala_app/templates/lala_app/perfil_cliente.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="container">
+        <h1>👤 Mi Perfil</h1>
+        
+        <div class="profile-content">
+            <div class="profile-sidebar">
+                <div class="profile-avatar">
+                    {% if cliente.foto_perfil %}
+                        <img src="{{ cliente.foto_perfil.url }}" alt="Foto de perfil">
+                    {% else %}
+                        <img src="{% static 'lala_app/img/user-avatar.png' %}" alt="Avatar">
+                    {% endif %}
+                    <form method="post" enctype="multipart/form-data" class="avatar-form">
+                        {% csrf_token %}
+                        <input type="file" name="foto_perfil" accept="image/*" id="id_foto_perfil" style="display: none;">
+                        <label for="id_foto_perfil" class="btn-change-avatar">📷 Cambiar foto</label>
+                    </form>
+                </div>
+                <div class="profile-info">
+                    <h3>{{ cliente.usuario.get_full_name|default:cliente.usuario.username }}</h3>
+                    <p>Miembro desde: {{ cliente.fecha_registro }}</p>
+                </div>
+<!-- En la sección de profile-nav -->
+<nav class="profile-nav">
+    <a href="#personal" class="nav-link active">📋 Información Personal</a>
+    <a href="{% url 'mis_pedidos' %}" class="nav-link">📦 Mis Pedidos</a>
+    <a href="{% url 'mis_resenas' %}" class="nav-link">⭐ Mis Reseñas</a>
+</nav>
+                </nav>
+            </div>
+            
+            <div class="profile-main">
+                <!-- Información Personal -->
+                <div id="personal" class="profile-section active">
+                    <h2>Información Personal</h2>
+                    <form method="post" class="profile-form">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first_name">Nombre:</label>
+                                <input type="text" id="first_name" name="first_name" value="{{ cliente.usuario.first_name }}" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name">Apellido:</label>
+                                <input type="text" id="last_name" name="last_name" value="{{ cliente.usuario.last_name }}" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico:</label>
+                            <input type="email" id="email" name="email" value="{{ cliente.correo }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Teléfono:</label>
+                            <input type="tel" id="phone" name="telefono" value="{{ cliente.telefono }}" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="direccion">Dirección:</label>
+                            <textarea id="direccion" name="direccion" class="form-control" rows="3">{{ cliente.direccion }}</textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">💾 Guardar Cambios</button>
+                    </form>
+                </div>
+                
+                <!-- Mis Pedidos -->
+               <div id="orders" class="profile-section">
+    <h2>📦 Mis Pedidos Recientes</h2>
+    <div class="orders-list">
+        {% for venta in ventas %}
+        <div class="order-card">
+            <div class="order-header">
+                <span class="order-id">Pedido #{{ venta.id }}</span>
+                <span class="order-date">{{ venta.fecha|date:"d M Y" }}</span>
+                <!-- ESTA LÍNEA ES LA QUE DEBES CAMBIAR -->
+                <span class="order-status {% if venta.completada %}completed{% else %}pending{% endif %}">
+                    {% if venta.completada %}✅ Completado{% else %}⏳ Pendiente{% endif %}
+                </span>
+            </div>
+            <div class="order-items">
+                {% for detalle in venta.detalleventa_set.all %}
+                <p>{{ detalle.cantidad }}x {{ detalle.producto.nombre }} - ${{ detalle.precio }} c/u</p>
+                {% endfor %}
+            </div>
+            <div class="order-total">
+                <strong>Total:</strong> ${{ venta.total }}
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-orders">No tienes pedidos recientes.</p>
+        {% endfor %}
+    </div>
+</div>
+                
+                <!-- Mis Reseñas -->
+                <div id="reviews" class="profile-section">
+                    <h2>⭐ Mis Reseñas</h2>
+                    <div class="user-reviews">
+                        {% for resena in reseñas_usuario %}
+                        <div class="user-review-card">
+                            <div class="review-product">
+                                <strong>Producto:</strong> 
+                                <a href="{% url 'detalle_producto' resena.producto.id %}">{{ resena.producto.nombre }}</a>
+                            </div>
+                            <div class="review-rating">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= resena.calificacion %}
+                                        <span class="star filled">★</span>
+                                    {% else %}
+                                        <span class="star">☆</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="review-text">{{ resena.descripcion }}</p>
+                            <span class="review-date">{{ resena.fecha }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="no-reviews">
+                            <p>📝 Aún no has escrito ninguna reseña.</p>
+                            <a href="{% url 'productos_lacteos' %}" class="btn-primary">✍️ Escribir mi primera reseña</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cambiar foto de perfil
+    const fileInput = document.getElementById('id_foto_perfil');
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    }
+});
+</script>
+
+<style>
+.order-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.order-status.completed {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.order-status.pending {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.no-orders {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 20px;
+}
+</style>
+{% endblock %}

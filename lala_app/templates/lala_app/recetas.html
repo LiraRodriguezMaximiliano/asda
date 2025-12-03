@@ -1,0 +1,489 @@
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="recipes-container">
+    <div class="container">
+        <h1>📝 Recetas LALA</h1>
+        <p class="section-description">Descubre deliciosas recetas creadas con nuestros productos LALA</p>
+
+        {% if user.is_authenticated and user.groups.all.0.name == 'Gerente' %}
+        <div class="admin-actions">
+            <a href="{% url 'admin_crud_create' 'receta' %}" class="btn-add-recipe">➕ Agregar Nueva Receta</a>
+        </div>
+        {% endif %}
+
+        <!-- BUSCADOR AGREGADO -->
+        <div class="search-container" style="margin: 30px 0; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar recetas..." 
+                       class="search-input" style="width: 100%; padding: 12px 20px; border: 2px solid #e74c3c; 
+                       border-radius: 25px; font-size: 1em; outline: none; transition: all 0.3s ease;">
+                <div class="search-hint" style="text-align: center; margin-top: 10px; color: #7f8c8d; font-size: 0.9em;">
+                    ✨ Busca por nombre, descripción o ingredientes
+                </div>
+            </div>
+        </div>
+
+        <div class="recipes-grid" id="recipesGrid">
+            {% for receta in recetas %}
+            <div class="recipe-card search-item" 
+                 data-name="{{ receta.nombre|lower }}" 
+                 data-description="{{ receta.descripcion|lower }}"
+                 data-ingredients="{{ receta.ingredientes|lower }}">
+                <div class="recipe-image">
+                    <a href="{% url 'detalle_receta' receta.id %}">
+                        {% if receta.foto %}
+                            <img src="{{ receta.foto.url }}" alt="{{ receta.nombre }}">
+                        {% else %}
+                            <img src="{% static 'lala_app/img/recipe-placeholder.jpg' %}" alt="Imagen no disponible">
+                        {% endif %}
+                    </a>
+                </div>
+                <div class="recipe-info">
+                    <h3><a href="{% url 'detalle_receta' receta.id %}">{{ receta.nombre }}</a></h3>
+                    <p class="recipe-description">{{ receta.descripcion|truncatewords:25 }}</p>
+                    <div class="recipe-actions">
+                        <a href="{% url 'detalle_receta' receta.id %}" class="btn-view-recipe">👀 Ver Receta</a>
+                        {% if user.is_authenticated and user.groups.all.0.name == 'Gerente' %}
+                        <div class="admin-recipe-actions">
+                            <a href="{% url 'admin_crud_update' 'receta' receta.id %}" class="btn-edit-small">✏️</a>
+                            <a href="{% url 'admin_crud_delete' 'receta' receta.id %}" class="btn-delete-small">🗑️</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-recipes">
+                <h3>🍳 Aún no hay recetas</h3>
+                <p>¡Pronto agregaremos deliciosas recetas para ti!</p>
+                {% if user.is_authenticated and user.groups.all.0.name == 'Gerente' %}
+                <a href="{% url 'admin_crud_create' 'receta' %}" class="btn-primary">➕ Crear la Primera Receta</a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT DEL BUSCADOR -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const recipeCards = document.querySelectorAll('.search-item');
+    const recipesGrid = document.getElementById('recipesGrid');
+    const noRecipesMessage = document.querySelector('.no-recipes');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let hasVisibleRecipes = false;
+            let visibleCount = 0;
+            
+            recipeCards.forEach(card => {
+                const recipeName = card.getAttribute('data-name');
+                const recipeDescription = card.getAttribute('data-description');
+                const recipeIngredients = card.getAttribute('data-ingredients');
+                
+                // Buscar en nombre, descripción e ingredientes
+                const matches = recipeName.includes(searchTerm) || 
+                              recipeDescription.includes(searchTerm) ||
+                              recipeIngredients.includes(searchTerm);
+                
+                if (matches || searchTerm === '') {
+                    card.style.display = 'block';
+                    hasVisibleRecipes = true;
+                    visibleCount++;
+                    
+                    // Resaltar término de búsqueda en el nombre
+                    if (searchTerm !== '') {
+                        const nameElement = card.querySelector('h3 a');
+                        if (nameElement) {
+                            const originalName = nameElement.textContent;
+                            const highlightedName = originalName.replace(
+                                new RegExp(`(${searchTerm})`, 'gi'),
+                                '<span style="background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px;">$1</span>'
+                            );
+                            nameElement.innerHTML = highlightedName;
+                        }
+                    }
+                } else {
+                    card.style.display = 'none';
+                    // Restaurar nombre original si estaba resaltado
+                    const nameElement = card.querySelector('h3 a');
+                    if (nameElement && nameElement.innerHTML.includes('<span')) {
+                        nameElement.innerHTML = nameElement.textContent;
+                    }
+                }
+            });
+            
+            // Actualizar contador de resultados
+            updateResultCounter(visibleCount, searchTerm);
+            
+            // Mostrar mensaje si no hay resultados
+            if (!hasVisibleRecipes && searchTerm !== '') {
+                if (!noRecipesMessage || !noRecipesMessage.classList.contains('no-search-results')) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'no-recipes no-search-results';
+                    noResults.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: #7f8c8d; margin-bottom: 15px;">🔍 No se encontraron recetas</h3>
+                            <p style="color: #7f8c8d;">No hay recetas que coincidan con "<strong style="color: #e74c3c;">${searchTerm}</strong>"</p>
+                            <button onclick="clearSearch()" style="margin-top: 20px; background: #e74c3c; color: white; 
+                                   border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                🔄 Limpiar búsqueda
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Remover mensaje anterior si existe
+                    const existingNoResults = document.querySelector('.no-search-results');
+                    if (existingNoResults) {
+                        existingNoResults.remove();
+                    }
+                    
+                    recipesGrid.appendChild(noResults);
+                }
+            } else {
+                // Remover mensaje de no resultados si existe
+                const noResultsMessage = document.querySelector('.no-search-results');
+                if (noResultsMessage) {
+                    noResultsMessage.remove();
+                }
+            }
+            
+            // Animación suave para los resultados
+            const visibleCards = document.querySelectorAll('.search-item[style*="display: block"]');
+            visibleCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.05}s`;
+                card.style.animation = 'fadeInUp 0.5s ease forwards';
+            });
+        });
+        
+        // Efecto focus en el buscador
+        searchInput.addEventListener('focus', function() {
+            this.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.2)';
+            this.style.borderColor = '#c0392b';
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            this.style.boxShadow = 'none';
+            this.style.borderColor = '#e74c3c';
+        });
+        
+        // Permitir buscar con Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.blur();
+            }
+        });
+    }
+    
+    // Función para actualizar contador de resultados
+    function updateResultCounter(count, searchTerm) {
+        let counter = document.getElementById('resultCounter');
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.id = 'resultCounter';
+            counter.className = 'result-counter';
+            searchInput.parentNode.appendChild(counter);
+        }
+        
+        if (searchTerm === '') {
+            counter.style.display = 'none';
+        } else {
+            counter.style.display = 'block';
+            counter.innerHTML = `📊 <strong>${count}</strong> receta${count !== 1 ? 's' : ''} encontrada${count !== 1 ? 's' : ''}`;
+            counter.style.color = count > 0 ? '#e74c3c' : '#7f8c8d';
+        }
+    }
+    
+    // Función para limpiar búsqueda
+    window.clearSearch = function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input'));
+            searchInput.focus();
+            
+            // Restaurar todos los nombres originales
+            recipeCards.forEach(card => {
+                const nameElement = card.querySelector('h3 a');
+                if (nameElement && nameElement.innerHTML.includes('<span')) {
+                    nameElement.innerHTML = nameElement.textContent;
+                }
+            });
+        }
+    };
+});
+
+// Agregar estilos de animación
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .search-item {
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    .search-item[style*="display: none"] {
+        animation: none;
+    }
+    
+    .no-search-results {
+        grid-column: 1 / -1;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    /* Efecto de resaltado para recetas encontradas */
+    .recipe-card:not([style*="display: none"]) {
+        position: relative;
+    }
+    
+    .recipe-card:not([style*="display: none"])::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border: 2px solid rgba(231, 76, 60, 0.3);
+        border-radius: 10px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .recipe-card:not([style*="display: none"]):hover::after {
+        opacity: 1;
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<style>
+/* Estilos adicionales para el buscador */
+.search-container {
+    position: relative;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+    border-color: #c0392b;
+}
+
+/* Efecto en las tarjetas de receta al buscar */
+.recipe-card {
+    transition: all 0.3s ease;
+}
+
+.recipe-card:not([style*="display: none"]) {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Contador de resultados */
+.result-counter {
+    text-align: center;
+    color: #e74c3c;
+    font-size: 0.9em;
+    margin-top: 10px;
+    font-weight: bold;
+    padding: 8px 15px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+/* Estilo para el campo de búsqueda cuando hay recetas */
+.search-input.has-results {
+    border-color: #e74c3c;
+    background: #fff5f5;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 0 15px;
+    }
+    
+    .search-input {
+        font-size: 16px; /* Previene zoom en iOS */
+    }
+}
+</style>
+
+<style>
+.recipes-container {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+.section-description {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+.admin-actions {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.btn-add-recipe {
+    background: #27ae60;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.recipes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+.recipe-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+}
+
+.recipe-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.recipe-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.recipe-card:hover .recipe-image img {
+    transform: scale(1.05);
+}
+
+.recipe-info {
+    padding: 20px;
+}
+
+.recipe-info h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.recipe-info h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.recipe-info h3 a:hover {
+    color: #e74c3c;
+}
+
+.recipe-description {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.recipe-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-view-recipe {
+    background: #3498db;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.admin-recipe-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-edit-small, .btn-delete-small {
+    padding: 5px 8px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.8em;
+}
+
+.btn-edit-small {
+    background: #f39c12;
+    color: white;
+}
+
+.btn-delete-small {
+    background: #e74c3c;
+    color: white;
+}
+
+.no-recipes {
+    text-align: center;
+    padding: 60px 20px;
+    grid-column: 1 / -1;
+}
+
+.no-recipes h3 {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+    .recipes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .recipe-actions {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .admin-recipe-actions {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,314 @@
+<!-- lala_app/templates/lala_app/mis_pedidos.html -->
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="my-orders-container">
+    <div class="container">
+        <!-- BOTÓN PARA VOLVER AL PERFIL AGREGADO -->
+        <div class="back-to-profile" style="margin-bottom: 20px;">
+            <a href="{% url 'perfil_cliente' %}" class="btn-back-profile" style="display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-size: 1em;">
+                ← Volver a Mi Perfil
+            </a>
+        </div>
+        
+        <h1>📦 Mis Pedidos</h1>
+        
+        {% if ventas %}
+        <div class="orders-list">
+            {% for venta in ventas %}
+            <div class="order-card">
+                <div class="order-header">
+                    <span class="order-date">{{ venta.fecha|date:"d M Y, H:i" }}</span>
+                    <span class="order-status {% if venta.completada %}completed{% else %}pending{% endif %}">
+    {% if venta.completada %}✅ Completado{% else %}⏳ Pendiente{% endif %}
+</span>
+                </div>
+                
+                <div class="order-items">
+                    <h4>Productos:</h4>
+                    <ul>
+                        {% for detalle in venta.detalleventa_set.all %}
+                        <li>{{ detalle.cantidad }}x {{ detalle.producto.nombre }} - ${{ detalle.precio }} c/u</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>${{ venta.total }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Envío:</span>
+                        <span>$0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span>${{ venta.total }}</span>
+                    </div>
+                </div>
+                
+
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-orders">
+            <div class="no-orders-content">
+                <h2>📭 Aún no has realizado ningún pedido</h2>
+                <p>¡Descubre nuestros deliciosos productos y realiza tu primera compra!</p>
+                <div class="no-orders-actions">
+                    <a href="{% url 'productos_lacteos' %}" class="btn-primary">🥛 Ver Productos Lácteos</a>
+                    <a href="{% url 'productos_no_lacteos' %}" class="btn-secondary">🌱 Ver Productos No Lácteos</a>
+                    <!-- BOTÓN PARA VOLVER AL PERFIL TAMBIÉN CUANDO NO HAY PEDIDOS -->
+                    <a href="{% url 'perfil_cliente' %}" class="btn-secondary" style="background: #3498db;">👤 Volver a Mi Perfil</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.my-orders-container {
+    padding: 40px 20px;
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Estilo para el botón de volver al perfil */
+.back-to-profile {
+    margin-bottom: 30px;
+}
+
+.btn-back-profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-back-profile:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+    text-decoration: none;
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 30px;
+}
+
+.order-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-left: 5px solid #3498db;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.order-id {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.order-date {
+    color: #7f8c8d;
+}
+
+.order-status {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.order-status.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.order-status.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.order-items h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.order-items ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.order-items li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f1f1;
+    color: #555;
+}
+
+.order-items li:last-child {
+    border-bottom: none;
+}
+
+.order-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    color: #555;
+}
+
+.summary-row.total {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.1em;
+    border-top: 2px solid #dee2e6;
+    margin-top: 10px;
+    padding-top: 15px;
+}
+
+.order-actions {
+    display: flex;
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 2px solid #ecf0f1;
+}
+
+.btn-view-details {
+    background: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-view-details:hover {
+    background: #2980b9;
+    text-decoration: none;
+}
+
+.btn-reorder {
+    background: #27ae60;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-reorder:hover {
+    background: #219653;
+    text-decoration: none;
+}
+
+.no-orders {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-top: 30px;
+}
+
+.no-orders h2 {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+}
+
+.no-orders p {
+    color: #7f8c8d;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+.no-orders-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: #2c3e50;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #1a252f;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+    }
+    
+    .no-orders-actions {
+        flex-direction: column;
+    }
+    
+    .back-to-profile {
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

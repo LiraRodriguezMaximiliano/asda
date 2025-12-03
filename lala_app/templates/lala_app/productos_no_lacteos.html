@@ -1,0 +1,314 @@
+{% extends 'lala_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="products-container">
+    <div class="container">
+        <h1>🌱 Productos No Lácteos</h1>
+        <p class="section-description">Explora nuestras alternativas saludables y deliciosas sin lactosa.</p>
+        
+        <!-- BUSCADOR AGREGADO -->
+        <div class="search-container" style="margin: 30px 0; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar productos no lácteos..." 
+                       class="search-input" style="width: 100%; padding: 12px 20px; border: 2px solid #27ae60; 
+                       border-radius: 25px; font-size: 1em; outline: none; transition: all 0.3s ease;">
+                <div class="search-hint" style="text-align: center; margin-top: 10px; color: #7f8c8d; font-size: 0.9em;">
+                    ✨ Busca por nombre, descripción o precio
+                </div>
+            </div>
+        </div>
+        
+        <div class="products-grid" id="productsGrid">
+            {% for producto in productos %}
+            <div class="product-card search-item" 
+                 data-name="{{ producto.nombre|lower }}" 
+                 data-description="{{ producto.descripcion|lower }}"
+                 data-price="{{ producto.precio }}">
+                <div class="product-image">
+                    <a href="{% url 'detalle_producto' producto.id %}">
+                        {% if producto.foto %}
+                            <img src="{{ producto.foto.url }}" alt="{{ producto.nombre }}">
+                        {% else %}
+                            <img src="{% static 'lala_app/img/placeholder.jpg' %}" alt="Imagen no disponible">
+                        {% endif %}
+                    </a>
+                </div>
+                <div class="product-info">
+                    <h3><a href="{% url 'detalle_producto' producto.id %}">{{ producto.nombre }}</a></h3>
+                    <p class="product-description">{{ producto.descripcion|truncatewords:20 }}</p>
+                    <p class="product-price">${{ producto.precio }}</p>
+                    
+                    <div class="product-actions">
+                        <a href="{% url 'detalle_producto' producto.id %}" class="btn-view-details">👀 Ver Detalles</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-products">
+                <p>No hay productos no lácteos disponibles en este momento.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT DEL BUSCADOR -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const productCards = document.querySelectorAll('.search-item');
+    const productsGrid = document.getElementById('productsGrid');
+    const noProductsMessage = document.querySelector('.no-products');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let hasVisibleProducts = false;
+            let visibleCount = 0;
+            
+            productCards.forEach(card => {
+                const productName = card.getAttribute('data-name');
+                const productDescription = card.getAttribute('data-description');
+                const productPrice = card.getAttribute('data-price');
+                
+                // Buscar en nombre, descripción y precio
+                const matches = productName.includes(searchTerm) || 
+                              productDescription.includes(searchTerm) ||
+                              productPrice.includes(searchTerm);
+                
+                if (matches || searchTerm === '') {
+                    card.style.display = 'block';
+                    hasVisibleProducts = true;
+                    visibleCount++;
+                    
+                    // Resaltar término de búsqueda en el nombre
+                    if (searchTerm !== '') {
+                        const nameElement = card.querySelector('h3 a');
+                        if (nameElement) {
+                            const originalName = nameElement.textContent;
+                            const highlightedName = originalName.replace(
+                                new RegExp(`(${searchTerm})`, 'gi'),
+                                '<span style="background-color: #ffeb3b; padding: 2px 4px; border-radius: 3px;">$1</span>'
+                            );
+                            nameElement.innerHTML = highlightedName;
+                        }
+                    }
+                } else {
+                    card.style.display = 'none';
+                    // Restaurar nombre original si estaba resaltado
+                    const nameElement = card.querySelector('h3 a');
+                    if (nameElement && nameElement.innerHTML.includes('<span')) {
+                        nameElement.innerHTML = nameElement.textContent;
+                    }
+                }
+            });
+            
+            // Actualizar contador de resultados
+            updateResultCounter(visibleCount, searchTerm);
+            
+            // Mostrar mensaje si no hay resultados
+            if (!hasVisibleProducts && searchTerm !== '') {
+                if (!noProductsMessage || !noProductsMessage.classList.contains('no-search-results')) {
+                    const noResults = document.createElement('div');
+                    noResults.className = 'no-products no-search-results';
+                    noResults.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <h3 style="color: #7f8c8d; margin-bottom: 15px;">🔍 No se encontraron productos</h3>
+                            <p style="color: #7f8c8d;">No hay productos que coincidan con "<strong style="color: #27ae60;">${searchTerm}</strong>"</p>
+                            <button onclick="clearSearch()" style="margin-top: 20px; background: #27ae60; color: white; 
+                                   border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                                🔄 Limpiar búsqueda
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Remover mensaje anterior si existe
+                    const existingNoResults = document.querySelector('.no-search-results');
+                    if (existingNoResults) {
+                        existingNoResults.remove();
+                    }
+                    
+                    productsGrid.appendChild(noResults);
+                }
+            } else {
+                // Remover mensaje de no resultados si existe
+                const noResultsMessage = document.querySelector('.no-search-results');
+                if (noResultsMessage) {
+                    noResultsMessage.remove();
+                }
+            }
+            
+            // Animación suave para los resultados
+            const visibleCards = document.querySelectorAll('.search-item[style*="display: block"]');
+            visibleCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.05}s`;
+                card.style.animation = 'fadeInUp 0.5s ease forwards';
+            });
+        });
+        
+        // Efecto focus en el buscador
+        searchInput.addEventListener('focus', function() {
+            this.style.boxShadow = '0 0 0 3px rgba(39, 174, 96, 0.2)';
+            this.style.borderColor = '#219653';
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            this.style.boxShadow = 'none';
+            this.style.borderColor = '#27ae60';
+        });
+        
+        // Permitir buscar con Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.blur();
+            }
+        });
+    }
+    
+    // Función para actualizar contador de resultados
+    function updateResultCounter(count, searchTerm) {
+        let counter = document.getElementById('resultCounter');
+        if (!counter) {
+            counter = document.createElement('div');
+            counter.id = 'resultCounter';
+            counter.className = 'result-counter';
+            searchInput.parentNode.appendChild(counter);
+        }
+        
+        if (searchTerm === '') {
+            counter.style.display = 'none';
+        } else {
+            counter.style.display = 'block';
+            counter.innerHTML = `📊 <strong>${count}</strong> producto${count !== 1 ? 's' : ''} encontrado${count !== 1 ? 's' : ''}`;
+            counter.style.color = count > 0 ? '#27ae60' : '#e74c3c';
+        }
+    }
+    
+    // Función para limpiar búsqueda
+    window.clearSearch = function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input'));
+            searchInput.focus();
+            
+            // Restaurar todos los nombres originales
+            productCards.forEach(card => {
+                const nameElement = card.querySelector('h3 a');
+                if (nameElement && nameElement.innerHTML.includes('<span')) {
+                    nameElement.innerHTML = nameElement.textContent;
+                }
+            });
+        }
+    };
+});
+
+// Agregar estilos de animación
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .search-item {
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    .search-item[style*="display: none"] {
+        animation: none;
+    }
+    
+    .no-search-results {
+        grid-column: 1 / -1;
+        animation: fadeInUp 0.5s ease;
+    }
+    
+    /* Efecto de resaltado para productos encontrados */
+    .product-card:not([style*="display: none"]) {
+        position: relative;
+    }
+    
+    .product-card:not([style*="display: none"])::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border: 2px solid rgba(39, 174, 96, 0.3);
+        border-radius: 10px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .product-card:not([style*="display: none"]):hover::after {
+        opacity: 1;
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<style>
+/* Estilos adicionales para el buscador */
+.search-container {
+    position: relative;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+    border-color: #219653;
+}
+
+/* Efecto en las tarjetas de producto al buscar */
+.product-card {
+    transition: all 0.3s ease;
+}
+
+.product-card:not([style*="display: none"]) {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Contador de resultados */
+.result-counter {
+    text-align: center;
+    color: #27ae60;
+    font-size: 0.9em;
+    margin-top: 10px;
+    font-weight: bold;
+    padding: 8px 15px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+/* Estilo para el campo de búsqueda cuando hay productos */
+.search-input.has-results {
+    border-color: #27ae60;
+    background: #f8fff9;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 0 15px;
+    }
+    
+    .search-input {
+        font-size: 16px; /* Previene zoom en iOS */
+    }
+}
+</style>
+{% endblock %}
